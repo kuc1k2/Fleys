@@ -1,0 +1,64 @@
+<?php
+require 'db.php';
+
+$category = $_GET['category'] ?? 'all';
+
+try {
+    if ($category === 'all') {
+        $stmt = $pdo->query("SELECT * FROM products");
+    } else {
+        $stmt = $pdo->prepare("SELECT * FROM products WHERE category = :category");
+        $stmt->execute(['category' => $category]);
+    }
+    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Ошибка при загрузке товаров: " . $e->getMessage());
+}
+?>
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Категории</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">   
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-logo">
+            <div class="logo-text"><a href="index.html">Fleys</a></div>
+        </div>
+        <ul class="navbar-links">
+            <li><a href="profile.php">Профиль</a></li>
+            <li><a href="cart.html">Корзина <span class="cart-count">0</span></a></li>
+            <li><a href="categories.html">Категории</a></li>
+        </ul>
+        <div class="navbar-logout">
+            <a href="logout.php">Выйти</a>
+        </div>
+    </nav>
+    <main class="main-content">
+        <h1>Категории товаров</h1>
+        <div class="category-select">
+            <select onchange="location = this.value;">
+                <option value="categories.html?category=all" <?php echo $category === 'all' ? 'selected' : ''; ?>>Все</option>
+                <option value="categories.html?category=keyboard" <?php echo $category === 'keyboard' ? 'selected' : ''; ?>>Клавиатуры</option>
+                <option value="categories.html?category=mouse" <?php echo $category === 'mouse' ? 'selected' : ''; ?>>Мыши</option>
+                <option value="categories.html?category=headphones" <?php echo $category === 'headphones' ? 'selected' : ''; ?>>Наушники</option>
+            </select>
+        </div>
+        <div class="products-list">
+            <?php foreach ($products as $product): ?>
+                <div class="product-card" data-category="<?php echo $product['category']; ?>">
+                    <img src="<?php echo $product['image']; ?>" alt="<?php echo $product['name']; ?>">
+                    <h2><?php echo $product['name']; ?></h2>
+                    <p><?php echo $product['description']; ?></p>
+                    <p class="price">Цена: <?php echo $product['price']; ?> руб.</p>
+                    <button class="add-to-cart">Добавить в корзину</button>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </main>
+</body>
+</html>

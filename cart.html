@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина | Fleys</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            color: #000000;
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; 
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            clip-path: polygon(0 0, 100% 0, 100% 70%, 0 90%);
+            z-index: -1;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            clip-path: polygon(0 90%, 100% 70%, 100% 100%, 0 100%);
+            z-index: -1;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2a2a2a;
+            padding: 10px 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            box-sizing: border-box;
+            z-index: 1000;
+            text-decoration: none;
+        }
+
+        .navbar-logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            color: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: bold;
+        }
+
+        .navbar-links {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+            flex-grow: 1;
+            margin-left: 20px;
+        }
+
+        .navbar-links li {
+            margin-right: 20px;
+        }
+
+        .navbar-links a {
+            text-decoration: none;
+            color: #ffffff;
+            font-size: 16px;
+            transition: color 0.3s ease;
+        }
+
+        .navbar-links a:hover {
+            color: #8a2be2;
+        }
+
+        .navbar-logout {
+            margin-left: auto;
+            padding-left: 20px;
+        }
+
+        .navbar-logout a {
+            text-decoration: none;
+            color: #ffffff;
+            font-size: 16px;
+            transition: color 0.3s ease;
+        }
+
+        .navbar-logout a:hover {
+            color: #8a2be2;
+        }
+
+        .main-content {
+            padding: 100px 20px 20px;
+            width: 100%;
+            max-width: 1200px;
+            box-sizing: border-box;
+        }
+
+        .cart-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .cart-title {
+            font-size: 28px;
+            color: #8a2be2;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .cart-items {
+            margin-bottom: 30px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .cart-item-price {
+            color: #666;
+        }
+
+        .cart-item-quantity {
+            display: flex;
+            align-items: center;
+            margin: 0 20px;
+        }
+
+        .quantity-btn {
+            background-color: #8a2be2;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 5px;
+        }
+
+        .quantity-btn:hover {
+            background-color: #6a1b9a;
+        }
+
+        .remove-btn {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .remove-btn:hover {
+            background-color: #cc0000;
+        }
+
+        .cart-summary {
+            text-align: right;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .total-price {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .checkout-button {
+            background-color: #8a2be2;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .checkout-button:hover {
+            background-color: #6a1b9a;
+        }
+
+        .checkout-form {
+            display: none;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 500px;
+            margin: 20px auto;
+        }
+
+        .checkout-form h2 {
+            font-size: 24px;
+            color: #8a2be2;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #8a2be2;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .submit-order {
+            background-color: #8a2be2;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+
+        .submit-order:hover {
+            background-color: #6a1b9a;
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .empty-cart p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .empty-cart a {
+            color: #8a2be2;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .empty-cart a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .cart-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .cart-item-quantity {
+                margin: 10px 0;
+            }
+
+            .remove-btn {
+                align-self: flex-end;
+            }
+
+            .main-content {
+                padding: 80px 15px 15px;
+            }
+
+            .cart-container,
+            .checkout-form {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .cart-item-name {
+                font-size: 16px;
+            }
+
+            .quantity-btn {
+                width: 25px;
+                height: 25px;
+                font-size: 14px;
+            }
+
+            .remove-btn {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+
+            .total-price {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="navbar-logo">
+            <span class="logo-text">Fleys</span>
+        </a>
+        <ul class="navbar-links">
+            <li><a href="categories.php">Категории</a></li>
+            <li><a href="profile.php">Профиль</a></li>
+        </ul>
+        <div class="navbar-logout">
+            <a href="logout.php">Выйти</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="cart-container">
+            <h1 class="cart-title">Ваша корзина</h1>
+            
+            <div class="cart-items">
+
+            </div>
+            
+            <div class="cart-summary">
+                <p class="total-price">Итого: 0 руб.</p>
+                <button class="checkout-button">Оформить заказ</button>
+            </div>
+        </div>
+        <div class="checkout-form">
+            <h2>Оформление заказа</h2>
+            <form id="orderForm">
+                <div class="form-group">
+                    <label for="fullName">ФИО*</label>
+                    <input type="text" id="fullName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Телефон*</label>
+                    <input type="tel" id="phone" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="address">Адрес доставки*</label>
+                    <textarea id="address" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="comments">Комментарий к заказу</label>
+                    <textarea id="comments"></textarea>
+                </div>
+                
+                <button type="submit" class="submit-order">Подтвердить заказ</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cartItemsContainer = document.querySelector('.cart-items');
+            const totalPriceElement = document.querySelector('.total-price');
+            const checkoutButton = document.querySelector('.checkout-button');
+            const checkoutForm = document.querySelector('.checkout-form');
+            const orderForm = document.getElementById('orderForm');
+            
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            
+            function renderCart() {
+                cartItemsContainer.innerHTML = '';
+                
+                if (cart.length === 0) {
+                    cartItemsContainer.innerHTML = `
+                        <div class="empty-cart">
+                            <p>Ваша корзина пуста</p>
+                            <a href="categories.php">Перейти к покупкам</a>
+                        </div>
+                    `;
+                    checkoutButton.style.display = 'none';
+                    totalPriceElement.textContent = '';
+                    checkoutForm.style.display = 'none';
+                    return;
+                }
+                
+                checkoutButton.style.display = 'block';
+                checkoutForm.style.display = 'none';
+                
+                let totalPrice = 0;
+                
+                cart.forEach((item, index) => {
+                    const price = parseFloat(item.price.toString().replace(/[^\d.]/g, ''));
+                    const itemTotal = price * item.quantity;
+                    totalPrice += itemTotal;
+                    
+                    const cartItem = document.createElement('div');
+                    cartItem.className = 'cart-item';
+                    cartItem.innerHTML = `
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-price">${item.price} руб.</div>
+                        </div>
+                        <div class="cart-item-quantity">
+                            <button class="quantity-btn minus" data-index="${index}">-</button>
+                            <span>${item.quantity}</span>
+                            <button class="quantity-btn plus" data-index="${index}">+</button>
+                        </div>
+                        <button class="remove-btn" data-index="${index}">Удалить</button>
+                    `;
+                    cartItemsContainer.appendChild(cartItem);
+                });
+                
+                totalPriceElement.innerHTML = `Итого: ${formatPrice(totalPrice)} руб.`;
+            }
+            
+            function formatPrice(price) {
+                return price.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            }
+            
+            cartItemsContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-btn')) {
+                    const index = e.target.getAttribute('data-index');
+                    cart.splice(index, 1);
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                    renderCart();
+                }
+                
+                if (e.target.classList.contains('minus')) {
+                    const index = e.target.getAttribute('data-index');
+                    if (cart[index].quantity > 1) {
+                        cart[index].quantity--;
+                        localStorage.setItem('cart', JSON.stringify(cart));
+                        renderCart();
+                    }
+                }
+                
+                if (e.target.classList.contains('plus')) {
+                    const index = e.target.getAttribute('data-index');
+                    cart[index].quantity++;
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                    renderCart();
+                }
+            });
+            
+            checkoutButton.addEventListener('click', () => {
+                checkoutForm.style.display = 'block';
+                checkoutButton.style.display = 'none';
+                window.scrollTo({
+                    top: checkoutForm.offsetTop - 20,
+                    behavior: 'smooth'
+                });
+            });
+            
+            orderForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const fullName = document.getElementById('fullName').value;
+                const phone = document.getElementById('phone').value;
+                const address = document.getElementById('address').value;
+                const comments = document.getElementById('comments').value;
+                
+                if (!fullName || !phone || !address) {
+                    alert('Пожалуйста, заполните все обязательные поля');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('api/create_order.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            fullName,
+                            phone,
+                            address,
+                            comments,
+                            items: cart,
+                            total: calculateTotal()
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert(`Заказ успешно оформлен! Номер вашего заказа: ${result.orderId}`);
+                        localStorage.removeItem('cart');
+                        cart = [];
+                        renderCart();
+                        checkoutForm.style.display = 'none';
+                        window.location.href = 'profile.php';
+                    } else {
+                        throw new Error(result.message || 'Ошибка оформления заказа');
+                    }
+                } catch (error) {
+                    console.error('Ошибка:', error);
+                    alert('Произошла ошибка при оформлении заказа: ' + error.message);
+                }
+            });
+            
+            function calculateTotal() {
+                return cart.reduce((total, item) => {
+                    const price = parseFloat(item.price.toString().replace(/[^\d.]/g, ''));
+                    return total + (price * item.quantity);
+                }, 0).toFixed(2);
+            }
+            renderCart();
+        });
+    </script>
+</body>
+</html>
